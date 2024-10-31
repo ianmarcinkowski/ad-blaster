@@ -15,32 +15,35 @@ class State(Enum):
     MUTED = "muted"
 
 
-categories = [
-    "Sports",
-    "Drama",
-    "Comedy",
-    "Advertisement",
-    "Blank Screen",
-    "Sci-fi",
-    "Unknown",
-    "News",
-]
+categories = {
+    "sports",
+    "drama",
+    "comedy",
+    "advertisement",
+    "blank screen",
+    "talk show",
+    "sci-fi",
+    "unknown",
+    "news",
+}
 
-bad_categories = [
-    "Advertisement",
-]
+bad_categories = {
+    "advertisement",
+    "tv station promo"
+}
 
-good_categories = ["Sports", "Drama", "Comedy", "Blank Screen", "Sci-fi", "News"]
+good_categories = categories - bad_categories
 
 
 class AdBlaster:
 
-    def __init__(self, config):
+    def __init__(self, config, db):
         self.config = config
         self.llm_hostname = self.config["ollama_uri"]
         self.ollama = OllamaClient(host=self.llm_hostname)
         self.console = Console()
         self.state = State.UNMUTED
+        self.db = db
 
     async def update_state(self, desired_state):
         previous_state = self.state
@@ -93,7 +96,14 @@ class AdBlaster:
 
     def decide(self, response):
         category = response.get("category")
-        description = response.get("description")
+        description = response.get("description", "")
+        logos = response.get("logos", "")
+        cursor = self.db.cursor()
+        cursor.execute('''
+            INSERT OR IGNORE INTO detected_categories (category, description, logos) VALUES (?, ?, ?)
+        ''', (category, description, logos))
+        self.db.commit()
+
         decision = None
         if category is not None:
             if category in bad_categories:
