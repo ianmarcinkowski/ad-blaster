@@ -70,14 +70,17 @@ You are an assistant helping users describe the contents displayed on their TV o
 
 **Instructions**:
 
+- **Category**: Determine a category of common types of TV program or advertising based on the content of the image
 - **Description**: Provide a explanation justifying your category selection.
-- **Category**: Determine a short 1-3 word category based off of the description.
 - **Logos**: (Optional) Any logos detected on the screen
 
 **Example**:
 
+Image Contents:
+
 If the image contains a scene with spaceships and aliens:
 
+Response:
 ```json
 {
     "category": "Sci-fi",
@@ -85,27 +88,15 @@ If the image contains a scene with spaceships and aliens:
     "logos": ""
 }
 ```
-
-**Example**:
-
-If the TV screen contains pricing information for a product called <super duty truck> with a logo for <truck brand>.
-
-```json
-{
-    "category": "Advertising",
-    "description": "Features pricing information and prominient logos.",
-    "logos": ["<truck brand>"]
-}
-```
 """
 
 user_prompt = """
-Please annotate the following image to use with my function
+Please analyze the image and return JSON for me to call with the following tool:
+
 analyze_television_content(category, description, logos=None)
 
 **Important**:
 
 - Output only the JSON object without additional text or commentary
 - Ensure the JSON is properly formatted and valid
-- Include your reasoning in the description
 """

@@ -6,7 +6,7 @@ from enum import Enum
 from rich import print as print_rich
 from rich.console import Console
 from rich.markdown import Markdown
-from ad_blaster.prompts import engineered_prompt, user_prompt
+from ad_blaster.prompts import engineered_prompt, user_prompt, open_category_prompt
 from ad_blaster.util import ns_to_ms, find_json, b64encode
 
 
@@ -27,12 +27,17 @@ categories = {
     "news",
 }
 
+neutral_categories = {
+    "unknown",
+    "blank screen"
+}
+
 bad_categories = {
     "advertisement",
     "tv station promo"
 }
 
-good_categories = categories - bad_categories
+good_categories = categories - bad_categories - neutral_categories
 
 
 class AdBlaster:
@@ -78,7 +83,15 @@ class AdBlaster:
         response = await self.ask(frame_b64)
         output = ""
         if response["json"]:
-            output = response["json"]
+            category = response.get("category")
+            description = response.get("description", "")
+            logos = str(response.get("logos", ""))
+            cursor = self.db.cursor()
+            cursor.execute('''
+                INSERT OR IGNORE INTO detected_categories (category, description, logos) VALUES (?, ?, ?)
+            ''', (category, description, logos))
+            self.db.commit()
+
             decision = self.decide(response["json"])
             self.console.print(f"[yellow] decision is {decision}")
             if decision == State.MUTED:
@@ -87,36 +100,19 @@ class AdBlaster:
                 await self.update_state(State.UNMUTED)
             else:
                 self.console.print("[yellow]Not enough signal to determine whether to mute or not")
+            console_output = response["json"]
         else:
             try:
-                output = Markdown(response["raw_message"])
+                console_output = Markdown(response["raw_message"])
             except:
-                output = response["raw_message"]
-        self.console.print(f"[blue]LLM: {output}")
-
-    def decide(self, response):
-        category = response.get("category")
-        description = response.get("description", "")
-        logos = response.get("logos", "")
-        cursor = self.db.cursor()
-        cursor.execute('''
-            INSERT OR IGNORE INTO detected_categories (category, description, logos) VALUES (?, ?, ?)
-        ''', (category, description, logos))
-        self.db.commit()
-
-        decision = None
-        if category is not None:
-            if category in bad_categories:
-                decision = State.MUTED
-            elif category in good_categories:
-                decision = State.UNMUTED
-        return decision
+                console_output = response["raw_message"]
+        self.console.print(f"[blue]LLM: {console_output}")
 
     async def ask(self, image_content):
         response = self.ollama.chat(
             model="x/llama3.2-vision",
             messages=[
-                {"role": "system", "content": engineered_prompt},
+                {"role": "system", "content": open_category_prompt},
                 {"role": "user", "content": user_prompt, "images": [image_content]},
             ],
         )
@@ -140,3 +136,15 @@ def setup_capture(x_size, y_size, device_id=0):
     cap.set(4, y_size)
     cap.set(cv2.CAP_PROP_AUTOFOCUS, 1)  # enable autofocus in case it wasn't
     return cap
+
+
+def decide(category):
+    decision = None
+    if category:
+        if category in bad_categories:
+            decision = State.MUTED
+        elif category in neutral_categories:
+            return None
+        elif category in good_categories:
+            decision = State.UNMUTED
+    return decision
