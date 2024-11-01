@@ -50,14 +50,13 @@ class AdBlaster:
         self.state = State.UNMUTED
         self.db = db
 
-    async def update_state(self, desired_state):
-        previous_state = self.state
-        if previous_state != desired_state:
-            if desired_state == State.UNMUTED:
-                await self.send_unmute()
-            elif desired_state == State.MUTED:
-                await self.send_mute()
+    def update_state(self, desired_state):
+        if self.state != desired_state:
             self.state = desired_state
+            if desired_state == State.UNMUTED:
+                self.send_unmute()
+            elif desired_state == State.MUTED:
+                self.send_mute()
 
     async def run(self):
         cap = setup_capture(self.config["webcam"]["width"], self.config["webcam"]["height"])
@@ -75,29 +74,23 @@ class AdBlaster:
             cv2.destroyWindow("preview")
 
     async def tick(self, cap):
-        _success, frame = cap.read()
+        _, frame = cap.read()
         await self.update_preview(frame)
-        _success, buffer = cv2.imencode(".png", frame)
+        _, buffer = cv2.imencode(".png", frame)
         frame_b64 = b64encode(buffer)
-        length = len(frame_b64)
         response = await self.ask(frame_b64)
-        output = ""
         if response["json"]:
             category = response.get("category")
             description = response.get("description", "")
             logos = str(response.get("logos", ""))
-            cursor = self.db.cursor()
-            cursor.execute('''
-                INSERT OR IGNORE INTO detected_categories (category, description, logos) VALUES (?, ?, ?)
-            ''', (category, description, logos))
-            self.db.commit()
+            self.log_category(category, description, logos)
 
             decision = self.decide(response["json"])
             self.console.print(f"[yellow] decision is {decision}")
             if decision == State.MUTED:
-                await self.update_state(State.MUTED)
+                self.update_state(State.MUTED)
             elif decision == State.UNMUTED:
-                await self.update_state(State.UNMUTED)
+                self.update_state(State.UNMUTED)
             else:
                 self.console.print("[yellow]Not enough signal to determine whether to mute or not")
             console_output = response["json"]
@@ -107,6 +100,14 @@ class AdBlaster:
             except:
                 console_output = response["raw_message"]
         self.console.print(f"[blue]LLM: {console_output}")
+
+    def log_category(self, category, description, logos):
+        cursor = self.db.cursor()
+        cursor.execute('''
+            INSERT OR IGNORE INTO detected_categories (category, description, logos) VALUES (?, ?, ?)
+        ''', (category, description, logos))
+        self.db.commit()
+
 
     async def ask(self, image_content):
         response = self.ollama.chat(
@@ -123,10 +124,10 @@ class AdBlaster:
             "json": found_json,
         }
 
-    async def send_unmute(self):
+    def send_unmute(self):
         self.console.print("[red]PLACEHOLDER UNMUTE COMMAND SENT")
 
-    async def send_mute(self):
+    def send_mute(self):
         self.console.print("[red]PLACEHOLDER MUTE COMMAND SENT")
 
 
