@@ -166,3 +166,5 @@ config.yaml
 production.yaml
 .DS_Store
 *.db
+samples/
+*.csv
