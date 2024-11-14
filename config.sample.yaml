@@ -1,5 +1,6 @@
 ollama_uri: "http://1.2.3.4:11434"
-db_path: app.db
+db_path: "app.db"
+arduino_tty_device: "/dev/tty.<device>"
 webcam:
   width: 800
   height: 450
