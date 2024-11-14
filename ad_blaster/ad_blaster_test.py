@@ -1,6 +1,5 @@
 import pytest
-import sqlite3
-from ad_blaster.ad_blaster import AdBlaster, State, decide
+from ad_blaster.ad_blaster import AdBlaster, State, find_tool_use
 from unittest.mock import MagicMock, patch
 
 @pytest.fixture
@@ -23,23 +22,6 @@ def config():
 @pytest.fixture
 def ad_blaster(config):
     return AdBlaster(config, mock_db)
-
-def test_decide():
-    decision = decide("sports")
-    assert decision == State.UNMUTED
-
-    decision = decide("advertisement")
-    assert decision == State.MUTED
-
-    decision = decide("unknown")
-    assert decision is None
-
-    decision = decide("")
-    assert decision is None
-
-    decision = decide(None)
-    assert decision is None
-
 
 def test_state_transitions(ad_blaster):
     # Start at unmuted, stay at unmuted
@@ -84,3 +66,12 @@ def test_triggering_unmute(ad_blaster):
         ad_blaster.state = State.UNMUTED
         ad_blaster.update_state(State.UNMUTED)
         mock_send_unmute.assert_not_called()
+
+def test_find_tool_use_function_call():
+    raw_string = """```python
+        advertising_detected(True)
+    ```
+    """
+    function_name, function_args = find_tool_use(raw_string)
+    assert function_name == "advertising_detected"
+    assert function_args == "True"
