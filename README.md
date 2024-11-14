@@ -1,14 +1,38 @@
 # Ad Blaster
 
-## Using a local LLM to detect ads and send IR mute commands to a TV
+Using a local LLM to detect ads and send IR mute commands to a TV
 
 <img width="1495" alt="Ian Marcinkowski - Hackathon - 2024-11-01 - Diagram" src="https://github.com/user-attachments/assets/7527469d-25de-4c9f-a422-3e32fda3addb">
 
-### Intro blog post
 
-When visiting my parents, the TV is usually on, and my parents have mostly stopped noticing advertising at this point.  It's just background noise to them.  Contrast that with my experience of using adblocking since browers have had plugins, and paying for things like Youtube Premium to avoid the ads.  
+## Setup
 
-Most ads are powerless without sound, so I am usually placed in charge of the TV remote because I care the most about this problem and my parents can be saved the annoyance of having to constantly mute and unmute something they are barely even aware of.  
+Requirements:
+
+- Computer with a GPU (tested on Radeon 7900XT and M2 Macbook)
+- Webcam connected to the computer you plan to run this project on
+- Ollama (ollama.com)
+- Meta `llama3.2-vision` model from the Ollama model library
+- Python 3.8+
+- (Optional) Arduino with IR LED and IR receiver (tested on Arduino Uno)
+  - This application will function without the Arduino.  Setup instructions may be published later
+
+Installation:
+
+- Follow Ollama instructions to download the `llama3.2-vision` model
+- Clone this repo
+- Create a Python virtualenv to store all of the required packages `python3 -m venv .venv && source .venv/bin/activate`
+- *Insert Arduino instructions*
+- Install python requrements (in dev mode just because) `pip install -e .`
+
+Running:
+- `python run.py`
+
+## Introduction Blog Post
+
+When visiting my parents, the TV is usually on, and my parents have mostly stopped noticing advertising at this point.  It's just background noise to them.  Contrast that with my experience of using adblocking since browers have had plugins, and paying for things like Youtube Premium to avoid the ads.
+
+Most ads are powerless without sound, so I am usually placed in charge of the TV remote because I care the most about this problem and my parents can be saved the annoyance of having to constantly mute and unmute something they are barely even aware of.
 
 AI should be used to provide good outcomes for humans, and I think muting ads and taking their power away seems like a fine use!
 
@@ -22,7 +46,7 @@ Months ago, I experimented with OpenAI's API and was able to get reasonably accu
 
 **Collaborating on hardware with my partner**
 
-My partner has an Arduino and was excited to have a concrete reason to experiment, so she took charge of the electronics side of the project. 
+My partner has an Arduino and was excited to have a concrete reason to experiment, so she took charge of the electronics side of the project.
 
 She wired up an IR receiver integrated-circuit to the Arduino, and used the `IRRemote` library to read the IR codes being sent by my TV's remote control.  Next, she began working on how to send the IR signals using the Arduino, and how to control when to send the signal via input from the Arduino's serial port so it could be integrated to the rest of the system.
 
@@ -65,7 +89,7 @@ Reason: A description of why advertising is likely.
 
 My own prompts were not steering the model to an answer that I could easily use.
 
-Initially, I was worried that longer prompts would require too much time for the model to process.  This proved to be a misconception which was cleared up by asking GPT-4o to generate the system and user prompts that I needed.  
+Initially, I was worried that longer prompts would require too much time for the model to process.  This proved to be a misconception which was cleared up by asking GPT-4o to generate the system and user prompts that I needed.
 
 These GPT-4o-generated prompts were much longer and included strongly worded directions to steer the model to producing helpful output.  They included bolded phrases to `**Keep the response short**` or `**Maintain Objectivity**`, and other calls to action, as well as examples of scenarios and expected output.
 
@@ -75,13 +99,13 @@ The core of the app captures images of the TV screen using `python-opencv` with 
 
 Common mis-classifications happen during sports promos and on daytime TV shows that demo different products like the Kelly Clarkson show.
 
-I learned that there is a tradeoff between 2-5 second, low-accuracy outputs, and 7-12 second medium-accuracy outputs. 
+I learned that there is a tradeoff between 2-5 second, low-accuracy outputs, and 7-12 second medium-accuracy outputs.
 
 Further improvements to accuracy could include better prompt engineering to improve the accuracy of the Tool Use Only prompt, windowing that only mutes after several positive signals, and buying more GPUs to improve generation time.
 
 **Post-hackathon progress**
 
-A couple hours after the hackathon demos ended, we resolved the uncertainty with sending IR signals by Arduino and have a working proof of concept that mutes the TV when ads are detected! 
+A couple hours after the hackathon demos ended, we resolved the uncertainty with sending IR signals by Arduino and have a working proof of concept that mutes the TV when ads are detected!
 
 Our solution is still limited by the false-positive rate of our prompting techniques.
 
