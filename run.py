@@ -2,14 +2,15 @@ import argparse
 import asyncio
 import sqlite3
 import yaml
-from base64 import b64encode
 from ad_blaster.ad_blaster import AdBlaster
-from ad_blaster.util import image_file_to_base64
+from ad_blaster.mute_providers import create_mute_provider
+
 
 def load_config(config_path="config.yaml"):
     with open(config_path, "r") as file:
         config = yaml.safe_load(file)
     return config
+
 
 def init_db(db_path):
     """Initialize the SQLite database and create the detected_categories table if it doesn't exist."""
@@ -26,13 +27,15 @@ def init_db(db_path):
     conn.commit()
     return conn
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run AdBlaster with an image.")
+    parser = argparse.ArgumentParser(description="Run AdBlaster with a live video feed.")
     args = parser.parse_args()
 
     config = load_config()
     db_path = config.get("db", "app.db")
     db = init_db(db_path)
+    mute_provider = create_mute_provider(config)
 
-    blaster = AdBlaster(config, db)
+    blaster = AdBlaster(config, db, mute_provider)
     asyncio.run(blaster.run())

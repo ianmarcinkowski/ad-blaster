@@ -1,6 +1,26 @@
 ollama_uri: "http://1.2.3.4:11434"
 db_path: "app.db"
-arduino_tty_device: "/dev/tty.<device>"
+
+# Vision model to use via Ollama. gemma3 supports image input out of the box.
+# Switch to gemma4 (or whichever tag Ollama uses) once it lands in the registry.
+model: "gemma3"
+
 webcam:
   width: 800
   height: 450
+
+# Number of recent frames to include in each inference request.
+# More frames give the model temporal context (better for ad boundary detection)
+# but increase prompt size and slow down each request. 1 = single-frame mode.
+video_buffer_frames: 4
+
+# Mute provider controls how the TV is silenced when an ad is detected.
+# type: "log"     — prints to stdout, no hardware required (good for dev/testing)
+# type: "arduino" — sends IR commands via a serial-connected Arduino IR blaster
+mute_provider:
+  type: log
+
+  # Uncomment and fill in for Arduino:
+  # type: arduino
+  # tty_device: "/dev/tty.usbserial-A10KYQNW"
+  # baudrate: 9600
