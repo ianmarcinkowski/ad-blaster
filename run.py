@@ -49,7 +49,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         default=None,
-        help="Ollama decision model to use (default: clef-flash, e.g. clef-flash or nimble).",
+        help="Ollama multimodal decision model to use (default: clef-flash, e.g. clef-flash or clef).",
     )
     parser.add_argument(
         "--dataset",
