@@ -6,8 +6,12 @@ setup(
     packages=find_packages(),
     install_requires=[
         "Pillow",  # For image processing
-        "ollama",
-        "opencv-python"
+        "kagglehub",
+        "ollama>=0.6.3",
+        "opencv-python",
+        "PyYAML",
+        "pyserial",
+        "rich",
     ],
     author="Ian Marcinkowski",
     author_email="ian@desrt.ca",

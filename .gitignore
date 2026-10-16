@@ -168,3 +168,4 @@ production.yaml
 *.db
 samples/
 *.csv
+dataset/

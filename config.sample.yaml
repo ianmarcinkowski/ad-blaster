@@ -1,18 +1,21 @@
-ollama_uri: "http://1.2.3.4:11434"
+ollama_uri: "http://localhost:11434"
 db_path: "app.db"
 
-# Vision model to use via Ollama. gemma3 supports image input out of the box.
-# Switch to gemma4 (or whichever tag Ollama uses) once it lands in the registry.
-model: "gemma3"
+# Multimodal decision model to use via Ollama's /v1/systemone endpoint.
+model: "clef-flash"
+
+# Probability threshold (0.0 - 1.0) above which advertising is considered detected.
+ad_detection_threshold: 0.5
 
 webcam:
-  width: 800
-  height: 450
+  width: 448
+  height: 252
+  jpeg_quality: 75
 
 # Number of recent frames to include in each inference request.
 # More frames give the model temporal context (better for ad boundary detection)
 # but increase prompt size and slow down each request. 1 = single-frame mode.
-video_buffer_frames: 4
+video_buffer_frames: 1
 
 # Mute provider controls how the TV is silenced when an ad is detected.
 # type: "log"     — prints to stdout, no hardware required (good for dev/testing)

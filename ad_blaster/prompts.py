@@ -388,3 +388,38 @@ advertising_detected(True or False)
 
 Keep your response concise.
 """
+
+clef_state = "Sequence of television screen capture frames ordered from oldest to newest."
+
+clef_questions = {
+    "advertising_detected": {
+        "type": "noul",
+        "instructions": (
+            "Determine whether advertising content is present on the television screen. "
+            "Look for brand logos, product displays, promotional text, slogans, calls to action "
+            "(e.g., 'Buy now', 'Limited time offer'), pricing/discount information, or commercial visual styles."
+        ),
+        "criteria": {
+            "true": (
+                "The screen displays an advertisement, commercial, product promotion, "
+                "sponsor graphic, pricing offer, or promotional call to action."
+            ),
+            "false": (
+                "The screen displays regular television programming (such as a TV show, movie, "
+                "live sports action, or news broadcast) or a blank screen without advertising."
+            ),
+        },
+    },
+    "category": {
+        "type": "choice",
+        "instructions": "Classify the type of television content shown in the frame(s).",
+        "criteria": {
+            "advertisement": "Commercials, product promotions, sponsor spots, or infomercials",
+            "promo": "Network promos or trailers for upcoming shows or events",
+            "sports": "Live sports games, athletic events, or sports commentary",
+            "program": "Regular TV shows, dramas, comedies, movies, or talk shows",
+            "news": "News broadcasts, anchor desks, or weather reports",
+            "blank": "Blank, black, or static screen with no program content",
+        },
+    },
+}
